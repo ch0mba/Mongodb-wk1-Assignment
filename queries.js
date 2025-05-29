@@ -107,7 +107,7 @@ async function  main(){
                 .skip(page * pageSize)
                 .limit(pageSize)
                 .toArray();
-            console.log(pageinatedBooks);
+            console.log(paginatedBooks);
         }
 
         // TASK 4 AGGREGATION
@@ -174,21 +174,24 @@ async function  main(){
         console.log(`\nExplain for finding "The Hobbit" (using title index):`);
         // The expalin() methof retuens details about the query plan.
         // 'executionStats' provides information about the execution.
-        const explainTitleIndex = await collection.find({ title: 'The Hobbit' }).explain('executionStats');
+        const explainTitleQuery = await collection.find({ title: 'The Hobbit' }).explain('executionStats');
         console.log('Query Plan stages:', explainTitleQuery.queryPlanner.winningPlan.stage);
-        console.log('Docs Examined:', explainTitleIndex.executionStats.totalDocsExamined);
+        console.log('Docs Examined:', explainTitleQuery.executionStats.totalDocsExamined);
         console.log('Keys Examined:', explainTitleQuery.executionStats.totalKeysExamined);
 
         // Query using the compound index and 'author' and 'published_year'
         console.log(`\nExplain for finding books by"J.R.R. Tolkien" published after 1950 (using compound index):`);
-        const explainCompoundIndex = await collection.find({ 
+        const explainCompoundQuery = await collection.find({ 
             author: 'J.R.R. Tolkien', 
             published_year: { $gt: 1950 } })
             .sort({ published_year: -1 }) // Sort by published_year descending
             .explain('executionStats');
-        console.log('Query Plan stages:', explainCompoundIndex.queryPlanner.winningPlan.inputPlan.stage);
-        console.log('Docs Explained:', explainCompoundQuery.executionStats.totalDocsExamined);
-        console.log('keys Examined:', explainComproundQuery.executionStats.totalKeysExamined);
+        // Use inputStage if present, otherwise fallback to stage
+        const winningPlan = explainCompoundQuery.queryPlanner.winningPlan;
+        const stage = winningPlan.inputStage ? winningPlan.inputStage.stage : winningPlan.stage;
+        console.log('Query Plan stage:', stage);
+        console.log('Docs Examined:', explainCompoundQuery.executionStats.totalDocsExamined);
+        console.log('Keys Examined:', explainCompoundQuery.executionStats.totalKeysExamined);
 
     
 

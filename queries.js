@@ -15,7 +15,11 @@ async function  main(){
     try {
         // connect to the MongoDB server
         await client.connect();
+        console.log('Connected to MongoDB server for queries');
+
+        const db = client.db(dbName);
         const collection = db.collection(collectionName);
+        console.log(`Database '${dbName}' and Collection '${collectionName}' initialized`);
 
         //TASK 2 BASIC OPERATIONS
         console.log('\n ----Basic Operations on Books Collection----');
@@ -67,7 +71,7 @@ async function  main(){
 
         //Finding books that are both in stock and published after 2010 with projection
         console.log(`\nFinding books in stock and published after 2010 with projection: title, author, and price`);
-        const inStockRecentBooks = await books.find(
+        const inStockRecentBooks = await collection.find(
             { in_stock: true, published_year: { $gt: 2010 } },
             { projection: { title: 1, author: 1, price: 1 } }
         ).toArray();
